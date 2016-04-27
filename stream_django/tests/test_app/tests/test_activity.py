@@ -2,7 +2,7 @@ import unittest
 from stream_django.activity import create_model_reference
 from stream_django.activity import model_content_type
 from stream_django.activity import create_reference
-from stream_django.tests import Tweet
+from test_app.models import Tweet
 
 
 class ActivityTestCase(unittest.TestCase):
@@ -27,7 +27,7 @@ class ActivityTestCase(unittest.TestCase):
 
     def test_activity_object(self):
         activity = self.tweet.create_activity()
-        self.assertEqual(activity['object'], 'stream_django.Tweet:42')
+        self.assertEqual(activity['object'], 'test_app.Tweet:42')
 
     def test_activity_notify(self):
         activity = self.tweet.create_activity()
@@ -35,7 +35,7 @@ class ActivityTestCase(unittest.TestCase):
 
     def test_activity_foreign_id(self):
         activity = self.tweet.create_activity()
-        self.assertEqual(activity['foreign_id'], 'stream_django.Tweet:42')
+        self.assertEqual(activity['foreign_id'], 'test_app.Tweet:42')
 
     def test_create_reference(self):
         activity = self.tweet.create_activity()
@@ -43,4 +43,4 @@ class ActivityTestCase(unittest.TestCase):
         self.assertEqual(activity['foreign_id'], ref)
 
     def test_model_content_type(self):
-        self.assertEqual(model_content_type(Tweet), 'stream_django.Tweet')
+        self.assertEqual(model_content_type(Tweet), 'test_app.Tweet')

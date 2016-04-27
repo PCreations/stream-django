@@ -5,6 +5,7 @@ from test_app import models
 import httpretty
 from stream_django.enrich import Enrich
 from stream_django.feed_manager import feed_manager
+from stream_django.models import StreamActivity
 
 
 api_url = re.compile(r'https://us-east-api.getstream.io/api/*.')
@@ -32,10 +33,13 @@ class PinTest(TestCase):
     def test_create(self):
         self.register_post_api()
         pin = models.Pin.objects.create(author=self.bogus)
+        stream_activity = pin.get_activity_instance()
         last_req = httpretty.last_request()
         req_body = last_req.parsed_body
-        self.assertEqual(req_body['foreign_id'], 'test_app.Pin:%s' % pin.id)
-        self.assertEqual(req_body['object'], 'test_app.Pin:%s' % pin.id)
+        self.assertEqual(req_body['foreign_id'], 'stream_django.StreamActivity:%s' % stream_activity.id)
+        self.assertEqual(req_body['object'], 'stream_django.StreamActivity:%s' % stream_activity.id)
+        self.assertEqual(req_body['original_foreign_id'], 'test_app.Pin:%s' % pin.id)
+        self.assertEqual(req_body['original_object'], 'test_app.Pin:%s' % pin.id)
         self.assertEqual(req_body['verb'], 'pin')
         self.assertEqual(req_body['actor'], 'auth.User:%s' % self.bogus.id)
 
@@ -44,9 +48,13 @@ class PinTest(TestCase):
         self.register_post_api()
         self.register_delete_api()
         pin = models.Pin.objects.create(author=self.bogus)
+        stream_activity = pin.get_activity_instance()
         pin.delete()
         last_req = httpretty.last_request()
         self.assertEqual(last_req.method, httpretty.DELETE)
+        self.assertTrue(stream_activity.data['foreign_id'] in last_req.path)
+        with self.assertRaises(StreamActivity.DoesNotExist):
+            stream_activity.refresh_from_db()
 
     @httpretty.activate
     def test_enrich_instance(self):
@@ -54,11 +62,14 @@ class PinTest(TestCase):
         pin = models.Pin.objects.create(author=self.bogus)
         pin.save()
         activity = pin.create_activity()
-
-        enriched_data = self.enricher.enrich_activities([activity])
+        stream_activity = pin.get_activity_instance()
+        enriched_data = self.enricher.enrich_activities([stream_activity.data])
         # check object field
-        self.assertEqual(enriched_data[0]['object'].id, pin.id)
-        self.assertIsInstance(enriched_data[0]['object'], models.Pin)
+        self.assertEqual(enriched_data[0]['object'].id, stream_activity.id)
+        self.assertIsInstance(enriched_data[0]['object'], StreamActivity)
+        # check original object field
+        self.assertEqual(enriched_data[0]['original_object'].id, pin.id)
+        self.assertIsInstance(enriched_data[0]['original_object'], models.Pin)
         # check actor field
         self.assertEqual(enriched_data[0]['actor'].id, pin.author_id)
         self.assertIsInstance(enriched_data[0]['actor'], self.User)

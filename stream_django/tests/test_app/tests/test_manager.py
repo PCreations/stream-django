@@ -1,8 +1,15 @@
 import httpretty
 import re
-from stream_django.feed_manager import feed_manager
-from stream_django.tests import Tweet
 import unittest
+
+from django.test import (
+    TestCase,
+    override_settings
+)
+
+from stream_django.feed_manager import feed_manager
+
+from test_app.models import Tweet
 
 
 api_url = re.compile(r'https://us-east-api.getstream.io/api/*.')

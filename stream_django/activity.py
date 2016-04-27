@@ -1,8 +1,9 @@
+import pytz
+
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils.timezone import is_aware
 from django.utils.timezone import make_naive
-import pytz
 
 
 def model_content_type(cls):
@@ -31,7 +32,7 @@ def create_model_reference(model_instance):
 
 
 class Activity(object):
-    
+
     @property
     def activity_author_feed(self):
         '''
@@ -88,7 +89,7 @@ class Activity(object):
     def activity_verb(self):
         model_name = slugify(self.__class__.__name__)
         return model_name
-    
+
     @property
     def activity_object(self):
         return create_reference(self.activity_object_attr)
@@ -103,20 +104,20 @@ class Activity(object):
         if is_aware(self.created_at):
             atime = make_naive(atime, pytz.utc)
         return atime
-    
+
     @property
     def activity_notify(self):
         pass
-    
+
     def create_activity(self):
         extra_data = self.extra_activity_data
         if not extra_data:
             extra_data = {}
-        
+
         to = self.activity_notify
         if to:
             extra_data['to'] = [f.id for f in to]
-        
+
         activity = dict(
             actor=self.activity_actor,
             verb=self.activity_verb,
@@ -126,3 +127,7 @@ class Activity(object):
             **extra_data
         )
         return activity
+
+    def get_activity_instance(self):
+        from stream_django.models import StreamActivity
+        return StreamActivity.objects.get_from_activity_data(self.create_activity())

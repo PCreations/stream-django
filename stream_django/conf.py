@@ -6,7 +6,11 @@ API_SECRET = getattr(settings, 'STREAM_API_SECRET', None)
 LOCATION = getattr(settings, 'STREAM_LOCATION', None)
 
 FEED_MANAGER_CLASS = getattr(settings, 'STREAM_FEED_MANAGER_CLASS',
-    'stream_django.managers.FeedManager'
+    'stream_django.managers.StreamActivityFeedManager'
+)
+
+ACTIVITY_MODEL_CLASS = getattr(settings, 'STREAM_ACTIVITY_MODEL_CLASS',
+    'stream_django.models.StreamActivity'
 )
 
 USER_FEED = getattr(settings, 'STREAM_USER_FEED', 'user')

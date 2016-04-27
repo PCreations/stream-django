@@ -21,3 +21,5 @@ DATABASES = {
 }
 
 MIDDLEWARE_CLASSES = []
+
+USE_TZ = True

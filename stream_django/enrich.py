@@ -15,7 +15,7 @@ def combine_dicts(a, b, op=operator.add):
         [(k, op(a[k], b[k])) for k in set(b) & set(a)])
 
 
-DEFAULT_FIELDS = ('actor', 'object')
+DEFAULT_FIELDS = ('actor', 'object', 'original_object')
 
 
 class EnrichedActivity(collections.MutableMapping):

@@ -1,1 +1,2 @@
 from stream_django.feed_manager import feed_manager
+from stream_django.activity_model import StreamActivity
