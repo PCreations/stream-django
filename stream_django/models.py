@@ -108,8 +108,10 @@ class StreamActivity(models.Model):
     objects = StreamActivityManager()
 
     def rehydrate_data(self):
-        data = self.content_object.create_activity()
-        self.data = data
+        self.data = StreamActivity.objects._build_activity_data(
+            self,
+            self.content_object.create_activity()
+        )
         self.save()
 
     @property
