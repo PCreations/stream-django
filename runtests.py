@@ -17,7 +17,7 @@ def runtests():
         django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner(verbosity=1, interactive=True)
-    failures = test_runner.run_tests(['test_app.tests.test_model_integration.PinTest.test_delete'])
+    failures = test_runner.run_tests(['test_app.tests.test_models.StreamActivityManagerTestCase.test_create_activity'])
     sys.exit(bool(failures))
 
 

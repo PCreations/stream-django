@@ -13,25 +13,31 @@ from stream_django.activity import (
 )
 from stream_django.feed_manager import feed_manager
 from django.test import TestCase as DjangoTestCase
+from django.contrib.auth.models import User
 
 from stream_django.models import (
     StreamActivityManager,
     StreamActivity
 )
 
+from test_app import models
+
+
 class StreamActivityManagerTestCase(DjangoTestCase):
 
     def setUp(self):
         feed_manager.disable_model_tracking()
+        self.user = User.objects.create()
 
     def test_create_activity(self):
+        pin = models.Pin.objects.create(author=self.user)
         time = datetime.datetime.now()
         activity_data = {
-            'actor': 'auth.User:42',
+            'actor': 'auth.User:{}'.format(self.user.pk),
             'foo': 'Foobar',
             'baz': ['foo', 'bar'],
-            'foreign_id': 'foos.Foo:42',
-            'object': 'foos.Foo:42',
+            'foreign_id': 'test_app.Pin:{}'.format(pin.pk),
+            'object': 'test_app.Pin:{}'.format(pin.pk),
             'time': time,
             'verb': 'fooed'
         }
@@ -39,20 +45,22 @@ class StreamActivityManagerTestCase(DjangoTestCase):
         stream_activity = StreamActivity.objects.create_activity(activity_data)
 
         self.assertEqual(stream_activity.data, {
-            'actor': 'auth.User:42',
+            'actor': 'auth.User:{}'.format(self.user.pk),
             'foo': 'Foobar',
             'baz': ['foo', 'bar'],
-            'original_foreign_id': 'foos.Foo:42',
-            'original_object': 'foos.Foo:42',
+            'original_foreign_id': 'test_app.Pin:{}'.format(pin.pk),
+            'original_object': 'test_app.Pin:{}'.format(pin.pk),
             'foreign_id': create_reference(stream_activity),
             'object': create_reference(stream_activity),
             'time': time,
             'verb': 'fooed'
         })
 
-        self.assertEqual(stream_activity.actor, 'auth.User:42')
+        self.assertEqual(stream_activity.actor, 'auth.User:{}'.format(self.user.pk))
         self.assertEqual(stream_activity.verb, 'fooed')
-        self.assertEqual(stream_activity.original_foreign_id, 'foos.Foo:42')
+        self.assertEqual(stream_activity.original_foreign_id, 'test_app.Pin:{}'.format(pin.pk))
+        self.assertEqual(stream_activity.content_object, pin)
+        self.assertEqual(StreamActivity.objects.get_for_original_object(pin), stream_activity)
 
     def test_build_activity_data_does_not_modify_original_dict(self):
         time = datetime.datetime.now()
