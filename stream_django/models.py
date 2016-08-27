@@ -80,12 +80,11 @@ class StreamActivityManager(models.Manager):
             raise e
 
     def get_for_original_object(self, model):
-        """
-        QuerySet for all comments for a particular model (either an instance or
-        a class).
-        """
         ct = ContentType.objects.get_for_model(model)
-        return self.get_queryset().get(content_type=ct, object_pk=model.pk)
+        try:
+            return self.get_queryset().get(content_type=ct, object_pk=model.pk)
+        except self.model.DoesNotExist:
+            return self.get_queryset().none()
 
 
 class StreamActivity(models.Model):
