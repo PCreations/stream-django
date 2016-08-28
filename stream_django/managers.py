@@ -77,7 +77,7 @@ class StreamActivityFeedManager(FeedManager):
 
     def stream_activity_delete(self, sender, instance, **kwargs):
         disabled_all = conf.DISABLE_MODEL_TRACKING or self._disabledModelTracking.get(EVERY_MODEL)
-        if instance._data and not disabled_all:
+        if not disabled_all:
             feed_type = self.get_actor_feed(instance)
             feed = self.get_feed(feed_type, instance.activity_actor_id)
             result = feed.remove_activity(foreign_id=instance.data['foreign_id'])
